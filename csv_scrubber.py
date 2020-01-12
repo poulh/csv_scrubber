@@ -8,13 +8,15 @@ import pandas as pd
 import numpy as np
 import logging
 import CsvScrubber
+from CsvScrubber import Transforms
 
 
 def parse_args():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--path", help="path csv,tsv,xls,or xlsx file")
-    parser.add_argument('-t','--transform',
+    parser.add_argument('-t',
+                        '--transform',
                         dest='transforms',
                         action='append',
                         help='<Required> Set flag',
@@ -209,48 +211,17 @@ def main2():
     print(paidThroughStats)
 
 
-def main3():
-    args = parse_args()
-    members = pd.read_excel(args.mp_path)
-    print(members)
-
-def create_transform(df, transform, params):
-    t = None
-    if transform == 'print':
-        t = CsvScrubber.Transforms.Print(df, *params)
-
-    if transform == 'is-na':
-        t = CsvScrubber.Transforms.IsNa(df,*params)
-        
-    if transform == 'not-na':
-        t = CsvScrubber.Transforms.NotNa(df,*params)
-        
-    if transform == 'camelcase':
-        t = CsvScrubber.Transforms.CamelCase(df, *params)
-
-    if transform == 'not-lower':
-        t = CsvScrubber.Transforms.NotLower(df, *params)
-
-    if transform == 'lower':
-        t = CsvScrubber.Transforms.Lower(df, *params)
-        
-    if t is None:
-        raise ValueError("unsupported transform '{}'".format(transform))
-
-    return t.transform()
-
 def main4():
     args = parse_args()
-    
+
     r = CsvScrubber.Reader(args.path)
     df = r.read()
 
     for transform in args.transforms:
         # this will put first value into transform and rest in a list (params)
-        transform , *params = transform.split(':')
-      
-        df = create_transform(df,transform,params)    
+        transform, *params = transform.split(':')
 
+        df = Transforms.create(df, transform, params)
 
 
 main4()
