@@ -14,10 +14,11 @@ def parse_args():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--path", help="path csv,tsv,xls,or xlsx file")
-    # parser.add_argument('--transform',
-    #                     action='append',
-    #                     help='<Required> Set flag',
-    #                     required=True)
+    parser.add_argument('-t','--transform',
+                        dest='transforms',
+                        action='append',
+                        help='<Required> Set flag',
+                        required=True)
 
     parser.add_argument("--clubhouse-path",
                         help="path to Clubhouse converted CSV")
@@ -168,7 +169,7 @@ def main():
     # exit()
     # member_planet = member_planet[member_planet['firstName'] == "Poul"]
     # print(member_planet)
-    # exit()®
+    # exit()
     # member_planet = member_planet[['firstName', 'lastName', 'paidThroughDate']]
     # member_planet.sort_values(by=['lastName'], inplace=True)
 
@@ -213,17 +214,43 @@ def main3():
     members = pd.read_excel(args.mp_path)
     print(members)
 
+def create_transform(df, transform, params):
+    t = None
+    if transform == 'print':
+        t = CsvScrubber.Transforms.Print(df, *params)
+
+    if transform == 'isna':
+        t = CsvScrubber.Transforms.IsNa(df,*params)
+        
+    if transform == 'notna':
+        t = CsvScrubber.Transforms.NotNa(df,*params)
+        
+    if transform == 'camelcase':
+        t = CsvScrubber.Transforms.CamelCase(df, *params)
+
+    if transform == 'is-lower':
+        t = CsvScrubber.Transforms.IsLower(df, *params)
+
+    if transform == 'lower':
+        t = CsvScrubber.Transforms.Lower(df, *params)
+        
+    if t is None:
+        raise ValueError("unsupported transform '{}'".format(transform))
+
+    return t.transform()
 
 def main4():
     args = parse_args()
-
+    
     r = CsvScrubber.Reader(args.path)
     df = r.read()
 
-    t = CsvScrubber.Transforms.CamelCaseTransform(df)
-    df = t.transform()
+    for transform in args.transforms:
+        # this will put first value into transform and rest in a list (params)
+        transform , *params = transform.split(':')
+      
+        df = create_transform(df,transform,params)    
 
-    print(df)
 
 
 main4()

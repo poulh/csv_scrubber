@@ -8,12 +8,12 @@ class Reader:
 
     def read(self):
         _, file_extension = os.path.splitext(self.path)
-        print(file_extension)
-        if file_extension is '.csv':
+
+        if file_extension == '.csv':
             return pd.read_csv(self.path)
         elif file_extension in ['.xls', '.xlsx']:
             return pd.read_excel(self.path)
-        elif file_extension is '.tsv':
+        elif file_extension == '.tsv':
             return pd.read_csv(self.path, delimiter='\t')
         else:
             raise ValueError("unsupported extension {}".format(file_extension))
