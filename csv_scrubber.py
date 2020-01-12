@@ -221,7 +221,9 @@ def main4():
         # this will put first value into transform and rest in a list (params)
         transform, *params = transform.split(':')
 
-        df = Transforms.create(df, transform, params)
+        transform = Transforms.create(df, transform, params)
+
+        df = transform.transform()
 
 
 main4()

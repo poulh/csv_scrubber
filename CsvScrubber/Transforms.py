@@ -7,6 +7,9 @@ def create(df, transform, params):
     if transform == 'print':
         t = Print(df, *params)
 
+    if transform == 'filter':
+        t = Filter(df, *params)
+
     if transform == 'is-na':
         t = IsNa(df, *params)
 
@@ -15,9 +18,6 @@ def create(df, transform, params):
 
     if transform == 'camelcase':
         t = CamelCase(df, *params)
-
-    if transform == 'not-lower':
-        t = NotLower(df, *params)
 
     if transform == 'lower':
         t = Lower(df, *params)
@@ -28,7 +28,7 @@ def create(df, transform, params):
     if t is None:
         raise ValueError("unsupported transform '{}'".format(transform))
 
-    return t.transform()
+    return t
 
 
 class Transform:
@@ -38,6 +38,12 @@ class Transform:
 
     def transform(self):
         return self.df
+
+
+class ColumnTransform(Transform):
+    def __init__(self, df, *params):
+        super().__init__(df, *params)
+        self.column = self.params[0]
 
 
 class CamelCase(Transform):
@@ -56,40 +62,47 @@ class CamelCase(Transform):
         return self.df.rename(columns=camel_case)
 
 
-class NotNa(Transform):
+class NotNa(ColumnTransform):
     def transform(self):
-        colname = self.params[0]
-        return self.df[self.df[colname].notna()]
+
+        return self.df[self.df[self.column].notna()]
 
 
-class IsNa(Transform):
+class IsNa(ColumnTransform):
     def transform(self):
-        colname = self.params[0]
-        return self.df[self.df[colname].isna()]
+
+        return self.df[self.df[self.column].isna()]
 
 
-class NotLower(Transform):
+class Filter(Transform):
     def transform(self):
-        colname = self.params[0]
 
-        return self.df[self.df[colname] != self.df[colname].str.lower()]
+        transform_name = self.params[0]
+
+        t = create(self.df.copy(), transform_name, self.params[1:])
+        transformed_df = t.transform()
+
+        column = t.column  # this ensures 't' is a ColumnTransform
+        series1 = self.df[column]
+
+        series2 = transformed_df[column]
+        return self.df[series1 != series2]
 
 
-class Lower(Transform):
+class Lower(ColumnTransform):
     def transform(self):
-        colname = self.params[0]
-        self.df[colname] = self.df[colname].map(lambda x: x.lower()
-                                                if isinstance(x, str) else x)
+
+        self.df[self.column] = self.df[self.column].map(
+            lambda x: x.lower() if isinstance(x, str) else x)
 
         return self.df
 
 
-class Strip(Transform):
+class Strip(ColumnTransform):
     def transform(self):
-        colname = self.params[0]
 
-        self.df[colname] = self.df[colname].map(lambda x: x.strip()
-                                                if isinstance(x, str) else x)
+        self.df[self.column] = self.df[self.column].map(
+            lambda x: x.strip() if isinstance(x, str) else x)
 
         return self.df
 
