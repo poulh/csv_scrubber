@@ -219,7 +219,7 @@ def main4():
 
     for transform in args.transforms:
         # this will put first value into transform and rest in a list (params)
-        transform, *params = transform.split(':')
+        transform, *params = transform.split('::')
 
         transform = Transforms.create(df, transform, params)
 

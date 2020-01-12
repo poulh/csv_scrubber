@@ -4,7 +4,7 @@ import pandas as pd
 
 class Reader:
     def __init__(self, path):
-        self.path = path
+        self.path = os.path.expanduser(path)
 
     def read(self):
         _, file_extension = os.path.splitext(self.path)

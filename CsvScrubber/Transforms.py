@@ -1,7 +1,9 @@
 import os
 import re
+from datetime import datetime
+from datetime import timezone
 from .Writer import Writer
-
+from .Reader import Reader
 #import pandas as pd
 
 
@@ -12,6 +14,9 @@ def create(df, transform, params):
 
     if transform == 'print-columns':
         t = PrintColumnNames(df, *params)
+
+    if transform == 'open':
+        t = Open(df, *params)
 
     if transform == 'save':
         t = Save(df, *params)
@@ -30,6 +35,9 @@ def create(df, transform, params):
 
     if transform == 'lower':
         t = Lower(df, *params)
+
+    if transform == 'date-convert':
+        t = DateConvert(df, *params)
 
     if transform == 'replace':
         t = Replace(df, *params)
@@ -93,9 +101,11 @@ class Filter(Transform):
     def transform(self):
 
         transform_name = self.params[0]
+        print("transform name: {}".format(transform_name))
 
         t = create(self.df.copy(), transform_name, self.params[1:])
         transformed_df = t.transform()
+
         transformed_df.set_index(t.column, inplace=True, drop=False)
 
         indexed_df = self.df.set_index(t.column, drop=False)
@@ -146,6 +156,18 @@ class PrintColumnNames(Transform):
         return super().transform()
 
 
+class Open(ColumnTransform):
+    def __init__(self, df, path, *params):
+        print("in open: {}".format(params))
+        # the passed-in dataframe is the one from --path.  We are going to make our own
+        # so we pass None up to the parent class and then set self.df via the Reader
+        super().__init__(None, *params)
+
+        r = Reader(path)
+        self.df = r.read()
+        print(self.params)
+
+
 class Save(Transform):
     def transform(self):
         path = self.params[0]
@@ -163,3 +185,26 @@ class ValidEmail(ColumnTransform):
         regex = re.compile(pattern)
 
         return self.df[self.df[self.column].str.match(pat=regex)]
+
+
+class DateConvert(ColumnTransform):
+    def __init__(self, df, *params):
+        super().__init__(df, *params)
+        self.strptime_format = self.params[1]
+        self.strftime_format = self.params[2]
+
+    def date_string_to_ymd(self, date_str):
+        # print("converting '{}' using '{}' and '{}'".format(
+        #     date_str, self.strptime_format, self.strftime_format))
+        # clubhouse mongo format: "%Y-%m-%dT%H:%M:%S.%f%z"
+
+        dt = datetime.strptime(date_str, self.strptime_format)
+        local_dt = dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
+        local_date_str = local_dt.strftime(self.strftime_format)
+        return local_date_str
+
+    def transform(self):
+        self.df[self.column] = self.df[self.column].apply(
+            self.date_string_to_ymd)
+
+        return self.df
