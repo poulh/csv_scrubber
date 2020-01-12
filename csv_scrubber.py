@@ -219,17 +219,17 @@ def create_transform(df, transform, params):
     if transform == 'print':
         t = CsvScrubber.Transforms.Print(df, *params)
 
-    if transform == 'isna':
+    if transform == 'is-na':
         t = CsvScrubber.Transforms.IsNa(df,*params)
         
-    if transform == 'notna':
+    if transform == 'not-na':
         t = CsvScrubber.Transforms.NotNa(df,*params)
         
     if transform == 'camelcase':
         t = CsvScrubber.Transforms.CamelCase(df, *params)
 
-    if transform == 'is-lower':
-        t = CsvScrubber.Transforms.IsLower(df, *params)
+    if transform == 'not-lower':
+        t = CsvScrubber.Transforms.NotLower(df, *params)
 
     if transform == 'lower':
         t = CsvScrubber.Transforms.Lower(df, *params)
