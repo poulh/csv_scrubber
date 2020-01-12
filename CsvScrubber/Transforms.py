@@ -30,6 +30,9 @@ def create(df, transform, params):
     if transform == 'not-na':
         t = NotNa(df, *params)
 
+    if transform == 'drop-column':
+        t = DropColumn(df, *params)
+
     if transform == 'camelcase':
         t = CamelCase(df, *params)
 
@@ -101,7 +104,7 @@ class Filter(Transform):
     def transform(self):
 
         transform_name = self.params[0]
-        print("transform name: {}".format(transform_name))
+        #print("transform name: {}".format(transform_name))
 
         t = create(self.df.copy(), transform_name, self.params[1:])
         transformed_df = t.transform()
@@ -158,7 +161,7 @@ class PrintColumnNames(Transform):
 
 class Open(ColumnTransform):
     def __init__(self, df, path, *params):
-        print("in open: {}".format(params))
+        #print("in open: {}".format(params))
         # the passed-in dataframe is the one from --path.  We are going to make our own
         # so we pass None up to the parent class and then set self.df via the Reader
         super().__init__(None, *params)
@@ -208,3 +211,8 @@ class DateConvert(ColumnTransform):
             self.date_string_to_ymd)
 
         return self.df
+
+
+class DropColumn(ColumnTransform):
+    def transform(self):
+        return self.df.drop(self.column, axis=1)
