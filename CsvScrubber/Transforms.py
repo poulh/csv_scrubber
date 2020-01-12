@@ -7,6 +7,9 @@ def create(df, transform, params):
     if transform == 'print':
         t = Print(df, *params)
 
+    if transform == 'print-columns':
+        t = PrintColumns(df, *params)
+
     if transform == 'filter':
         t = Filter(df, *params)
 
@@ -84,8 +87,8 @@ class Filter(Transform):
 
         column = t.column  # this ensures 't' is a ColumnTransform
         series1 = self.df[column]
-
         series2 = transformed_df[column]
+
         return self.df[series1 != series2]
 
 
@@ -110,4 +113,10 @@ class Strip(ColumnTransform):
 class Print(Transform):
     def transform(self):
         print(self.df)
+        return super().transform()
+
+
+class PrintColumns(Transform):
+    def transform(self):
+        print(self.df.columns)
         return super().transform()
