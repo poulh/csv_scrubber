@@ -85,6 +85,7 @@ def main():
                 if args.verbose:
                     df = Transforms.create(df, 'print').transform()
                 df = transform.transform()
+                if df is None: break
 
     if args.print or args.verbose:
         df = Transforms.create(df, 'print').transform()

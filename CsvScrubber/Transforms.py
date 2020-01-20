@@ -14,14 +14,15 @@ def create(df, transform, **params):
     # print("------------------------------")
 
     t = None
+
+    if transform == 'break':
+        t = Break(df, **params)
+
     if transform == 'print':
         t = Print(df, **params)
 
     if transform == 'print-columns':
         t = PrintColumnNames(df, **params)
-
-    if transform == 'open':
-        t = Open(df, **params)
 
     if transform == 'save':
         t = Save(df, **params)
@@ -38,8 +39,8 @@ def create(df, transform, **params):
     if transform == 'contains':
         t = Contains(df, **params)
 
-    if transform == 'drop-column':
-        t = DropColumn(df, **params)
+    if transform == 'drop-columns':
+        t = DropColumns(df, **params)
 
     if transform == 'keep-columns':
         t = KeepColumns(df, **params)
@@ -84,6 +85,11 @@ class Transform:
         return self.df
 
 
+class Break(Transform):
+    def transform(self):
+        return None
+
+
 class ColumnTransform(Transform):
     def __init__(self, df, column, **params):
         super().__init__(df, **params)
@@ -121,6 +127,8 @@ class IsNa(ColumnTransform):
         return self.df[self.df[self.column].isna()]
 
 
+# All join params supported
+# https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.join.html
 class Join(ColumnTransform):
     def __init__(self, df, other, **params):
         super().__init__(df, **params)
@@ -180,18 +188,6 @@ class PrintColumnNames(Transform):
     def transform(self):
         print(self.df.columns)
         return super().transform()
-
-
-class Open(Transform):
-    def __init__(self, df, path, **params):
-        #print("in open: {}".format(params))
-        # the passed-in dataframe is the one from --path.  We are going to make our own
-        # so we pass None up to the parent class and then set self.df via the Reader
-        super().__init__(None, **params)
-
-        r = Reader(path)
-        self.df = r.read()
-        # print(self.params)
 
 
 class Save(Transform):
@@ -280,7 +276,7 @@ class DateConvert(ColumnTransform):
         return self.df
 
 
-class DropColumn(ColumnTransform):
+class DropColumns(ColumnTransform):
     def transform(self):
         return self.df.drop(self.column, axis=1)
 
@@ -291,9 +287,10 @@ class KeepColumns(ColumnTransform):
         return self.df[self.column]
 
 
+# Takes all params of contains method
+# https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.str.contains.html
 class Contains(ColumnTransform):
     def transform(self):
 
-        # what ever params are allowed here
-        # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.str.contains.html
-        return self.df[self.df[self.column].str.contains(**self.params)]
+        return self.df[self.df[self.column].str.contains(na=False,
+                                                         **self.params)]
