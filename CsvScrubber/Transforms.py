@@ -63,8 +63,8 @@ def create(df, transform, **params):
     if transform == 'valid-email':
         t = ValidEmail(df, **params)
 
-    if transform == 'repair-email':
-        t = RepairEmail(df, **params)
+    # if transform == 'repair-email':
+    #     t = RepairEmail(df, **params)
 
     if t is None:
         raise ValueError("unsupported transform '{}'".format(transform))
@@ -290,7 +290,11 @@ class KeepColumns(ColumnTransform):
 # Takes all params of contains method
 # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.str.contains.html
 class Contains(ColumnTransform):
+    def __init__(self, df, check=True, **params):
+        super().__init__(df, **params)
+        self.check = check
+
     def transform(self):
 
-        return self.df[self.df[self.column].str.contains(na=False,
-                                                         **self.params)]
+        return self.df[self.df[self.column].str.contains(
+            na=False, **self.params) == self.check]
