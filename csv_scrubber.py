@@ -82,16 +82,16 @@ def main():
             for transform in data['transforms']:
                 transform_name = transform.pop('transform')
                 transform = Transforms.create(df, transform_name, **transform)
+                if args.verbose:
+                    df = Transforms.create(df, 'print').transform()
                 df = transform.transform()
 
-    if args.print:
-        transform = Transforms.create(df, 'print')
-        df = transform.transform()
+    if args.print or args.verbose:
+        df = Transforms.create(df, 'print').transform()
 
     if args.save:
         params = {'path': args.save}
-        transform = Transforms.create(df, 'save', **params)
-        df = transform.transform()
+        df = transform = Transforms.create(df, 'save', **params).transform()
 
 
 main()

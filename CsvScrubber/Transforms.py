@@ -26,8 +26,8 @@ def create(df, transform, **params):
     if transform == 'save':
         t = Save(df, **params)
 
-    if transform == 'filter':
-        t = Filter(df, **params)
+    if transform == 'join':
+        t = Join(df, **params)
 
     if transform == 'is-na':
         t = IsNa(df, **params)
@@ -121,24 +121,21 @@ class IsNa(ColumnTransform):
         return self.df[self.df[self.column].isna()]
 
 
-class Filter(ColumnTransform):
-    def __init__(self, df, transform_name, **params):
+class Join(ColumnTransform):
+    def __init__(self, df, other, **params):
         super().__init__(df, **params)
-        self.transform_name = transform_name
+        self.other = other
 
     def transform(self):
+        other = Reader(self.other).read()
 
-        #print("transform name: {}".format(transform_name))
-        #transform_name = self.params.pop('transform_name')
-        t = create(self.df.copy(), self.transform_name, **self.params)
-        transformed_df = t.transform()
-
-        transformed_df.set_index(self.column, inplace=True, drop=False)
+        # don't drop the column we set as the index
+        other.set_index(self.column, inplace=True, drop=False)
 
         # keep column when also makeing it an index
         indexed_df = self.df.set_index(self.column, drop=False)
 
-        results = indexed_df.drop(transformed_df.index, errors='ignore')
+        results = indexed_df.join(other, **self.params)
 
         # remove index. don't add it back as a column since we kept it above
         return results.reset_index(drop=True)
