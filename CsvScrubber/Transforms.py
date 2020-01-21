@@ -36,6 +36,9 @@ def create(df, transform, **params):
     if transform == 'not-na':
         t = NotNa(df, **params)
 
+    if transform == 'assign':
+        t = Assign(df, **params)
+
     if transform == 'contains':
         t = Contains(df, **params)
 
@@ -298,3 +301,10 @@ class Contains(ColumnTransform):
 
         return self.df[self.df[self.column].str.contains(
             na=False, **self.params) == self.check]
+
+
+class Assign(ColumnTransform):
+    def transform(self):
+
+        self.df[self.column] = self.params['value']
+        return self.df
