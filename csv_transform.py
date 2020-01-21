@@ -7,8 +7,8 @@ from datetime import timezone
 import pandas as pd
 import numpy as np
 import logging
-import CsvScrubber
-from CsvScrubber import Transforms
+import CsvTransform
+from CsvTransform import Transforms
 import json
 
 
@@ -73,7 +73,7 @@ def main():
     args = parse_args()
     if args.verbose == True:
         print(args)
-    r = CsvScrubber.Reader(args.path)
+    r = CsvTransform.Reader(args.path)
     df = r.read()
 
     if args.config:
