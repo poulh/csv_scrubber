@@ -124,6 +124,9 @@ class CamelCase(Transform):
 class NotNa(ColumnTransform):
     def transform(self):
 
+        if (type(self.column) == str):
+            return self.df[self.df[self.column].notna()]
+
         return self.df[self.df[self.column].notna().all(1)]
 
 
@@ -132,6 +135,9 @@ class NotNa(ColumnTransform):
 # good way to see rows with missing values
 class IsNa(ColumnTransform):
     def transform(self):
+
+        if (type(self.column) == str):
+            return self.df[self.df[self.column].isna()]
 
         for column in self.column:
             self.df = self.df[self.df[column].isna()]
