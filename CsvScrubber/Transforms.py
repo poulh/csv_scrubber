@@ -118,16 +118,25 @@ class CamelCase(Transform):
         return self.df.rename(columns=camel_case)
 
 
+# if multiple columns passed in NotNa wil return ONLY
+# rows where all the columns' values are not NA
+# good way to see rows which have all their values
 class NotNa(ColumnTransform):
     def transform(self):
 
-        return self.df[self.df[self.column].notna()]
+        return self.df[self.df[self.column].notna().all(1)]
 
 
+# if multiple columns passed in IsNa will return ANY
+# rows where one of the colmuns' valuse is NA
+# good way to see rows with missing values
 class IsNa(ColumnTransform):
     def transform(self):
 
-        return self.df[self.df[self.column].isna()]
+        for column in self.column:
+            self.df = self.df[self.df[column].isna()]
+
+        return self.df
 
 
 # All join params supported
