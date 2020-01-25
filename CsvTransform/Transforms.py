@@ -153,9 +153,20 @@ class IsNa(NotNa):
 # All join params supported
 # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.join.html
 class Join(ColumnTransform):
-    def __init__(self, df, other, **params):
+    def __init__(self,
+                 df,
+                 other,
+                 drop_joined_columns=False,
+                 lsuffix='',
+                 **params):
         super().__init__(df, **params)
         self.other = other
+
+        self.dropped_joined_columns = drop_joined_columns
+        self.columns_to_keep = []
+        if self.dropped_joined_columns:
+            self.columns_to_keep = self.df.columns.map(
+                lambda column: column + lsuffix)
 
     def transform(self):
         other = Reader(self.other).read()
@@ -163,13 +174,19 @@ class Join(ColumnTransform):
         # don't drop the column we set as the index
         other.set_index(self.column, inplace=True, drop=False)
 
-        # keep column when also makeing it an index
+        # keep column when also making it an index
         indexed_df = self.df.set_index(self.column, drop=False)
 
         results = indexed_df.join(other, **self.params)
 
         # remove index. don't add it back as a column since we kept it above
-        return results.reset_index(drop=True)
+        results = results.reset_index(drop=True)
+
+        if self.dropped_joined_columns:
+            keep_transform = KeepColumns(results, self.columns_to_keep)
+            results = keep_transform.transform()
+
+        return results
 
 
 class Lower(ColumnTransform):
