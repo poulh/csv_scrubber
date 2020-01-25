@@ -48,6 +48,9 @@ def create(df, transform, **params):
     if transform == 'keep-columns':
         t = KeepColumns(df, **params)
 
+    if transform == 'duplicated-columns':
+        t = DuplicatedColumns(df, **params)
+
     if transform == 'camelcase':
         t = CamelCase(df, **params)
 
@@ -122,14 +125,15 @@ class NotNa(ColumnTransform):
     def filter(self):
         if (type(self.column) == str):
             self.column = [self.column]
+            self.params['require'] = 'all'
 
         return self.df[self.column].notna()
 
     def transform(self):
-
-        require = self.params['require']
-
+        print(self.params)
         filter = self.filter()
+        print(self.params)
+        require = self.params['require']
 
         if require == 'all':
             filter = filter.all(1)
@@ -145,6 +149,7 @@ class NotNa(ColumnTransform):
 class IsNa(NotNa):
     def filter(self):
         if (type(self.column) == str):
+            self.params['require'] = 'all'
             self.column = [self.column]
 
         return self.df[self.column].isna()
@@ -323,8 +328,15 @@ class DropColumns(ColumnTransform):
 
 class KeepColumns(ColumnTransform):
     def transform(self):
-
         return self.df[self.column]
+
+
+# Supports All Params
+# https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.duplicated.html
+class DuplicatedColumns(ColumnTransform):
+    def transform(self):
+
+        return self.df[self.df.duplicated(self.column, **self.params)]
 
 
 # Takes all params of contains method
